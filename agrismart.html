@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgriSmart – Smart Farming Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2f7d32; --green-d: #1b5e20; --lime: #8bc34a; --soil: #6d4c41; --sun: #ffb300;
+    --cream: #fbf8ef; --card: #ffffff; --text: #23301f; --muted: #6a7a63; --line: #e4e9d9;
+    --shadow: 0 8px 28px rgba(35,48,31,.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Nunito', system-ui, sans-serif; background: var(--cream); color: var(--text); line-height: 1.55; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 20; background: rgba(251,248,239,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .nav-in { max-width: 1180px; margin: 0 auto; padding: 12px 5vw; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.4rem; color: var(--green-d); }
+  .links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .links a { text-decoration: none; color: var(--text); font-weight: 600; font-size: .92rem; padding: 7px 13px; border-radius: 999px; transition: .2s; }
+  .links a:hover { background: var(--green); color: #fff; }
+
+  /* HERO */
+  .hero { position: relative; overflow: hidden; background: linear-gradient(180deg, #8fd3f4 0%, #d8f1c9 62%, #a5d56b 100%); text-align: center; padding: 90px 5vw 130px; }
+  .sun { position: absolute; top: 40px; right: 12%; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, #fff176, var(--sun)); box-shadow: 0 0 60px 20px rgba(255,200,40,.55); animation: pulse 5s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.08); box-shadow: 0 0 80px 28px rgba(255,200,40,.6); } }
+  .cloud { position: absolute; width: 120px; height: 38px; background: #fff; border-radius: 40px; opacity: .85; animation: drift linear infinite; }
+  .cloud::before, .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+  .cloud::before { width: 54px; height: 54px; top: -26px; left: 18px; }
+  .cloud::after { width: 40px; height: 40px; top: -18px; left: 60px; }
+  .c1 { top: 60px; animation-duration: 55s; } .c2 { top: 130px; animation-duration: 80s; animation-delay: -30s; transform: scale(.7); } .c3 { top: 30px; animation-duration: 70s; animation-delay: -50s; transform: scale(.55); }
+  @keyframes drift { from { left: -200px; } to { left: 105%; } }
+  .hero h1 { position: relative; font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.1; color: var(--green-d); }
+  .hero p { position: relative; max-width: 620px; margin: 16px auto 28px; font-size: 1.15rem; color: #29402a; }
+  .hero-btns { position: relative; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { border: none; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 1rem; padding: 12px 26px; border-radius: 999px; background: var(--green); color: #fff; text-decoration: none; display: inline-block; box-shadow: 0 6px 16px rgba(47,125,50,.35); transition: .2s; }
+  .btn:hover { background: var(--green-d); transform: translateY(-2px); }
+  .btn.alt { background: #fff; color: var(--green-d); box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+  .btn.small { padding: 8px 16px; font-size: .88rem; }
+  .field-rows { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: repeating-linear-gradient(100deg, #6aa84f 0 18px, #5b983f 18px 36px); clip-path: polygon(0 40%, 25% 15%, 50% 35%, 75% 10%, 100% 30%, 100% 100%, 0 100%); }
+
+  /* SECTIONS */
+  section.s { max-width: 1180px; margin: 0 auto; padding: 60px 5vw 10px; }
+  .s-head { text-align: center; margin-bottom: 28px; }
+  .s-head h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); color: var(--green-d); }
+  .s-head p { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 24px; box-shadow: var(--shadow); }
+  .grid { display: grid; gap: 20px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  label { display: block; font-weight: 700; font-size: .85rem; margin: 12px 0 5px; color: var(--soil); }
+  input, select { width: 100%; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 1rem; background: #fdfdf8; color: var(--text); }
+  input:focus, select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(47,125,50,.15); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* WEATHER */
+  .weather { background: linear-gradient(135deg, #1f6f8b, #2f7d32); color: #fff; border: none; }
+  .w-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .w-now { display: flex; align-items: center; gap: 16px; }
+  .w-ico { font-size: 4rem; }
+  .w-temp { font-family: 'Fraunces', serif; font-size: 3.2rem; font-weight: 800; line-height: 1; }
+  .w-desc { opacity: .9; }
+  .w-stats { display: flex; gap: 22px; flex-wrap: wrap; }
+  .w-stats div { text-align: center; } .w-stats b { display: block; font-size: 1.3rem; } .w-stats small { opacity: .8; }
+  .forecast { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 20px; }
+  .fday { background: rgba(255,255,255,.14); border-radius: 14px; padding: 12px 8px; text-align: center; font-size: .9rem; }
+  .fday .e { font-size: 1.7rem; }
+  .advice { margin-top: 18px; background: rgba(255,255,255,.18); border-radius: 14px; padding: 14px 16px; font-weight: 600; }
+  .w-msg { opacity: .9; margin-top: 8px; }
+
+  /* ADVISOR */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .chip { border: 1.5px solid var(--line); background: #fff; padding: 8px 16px; border-radius: 999px; cursor: pointer; font-family: inherit; font-weight: 700; font-size: .9rem; color: var(--text); transition: .2s; }
+  .chip.on { background: var(--green); color: #fff; border-color: var(--green); }
+  .crops { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; margin-top: 22px; }
+  .crop { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); transition: transform .25s; }
+  .crop:hover { transform: translateY(-5px); }
+  .crop .em { font-size: 2.6rem; } .crop h3 { font-size: 1.25rem; margin: 4px 0 8px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tag { font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #eaf5dc; color: var(--green-d); }
+  .tag.k { background: #fff1d0; color: #8a5a00; } .tag.r { background: #e0ecff; color: #1d4e9e; } .tag.z { background: #fde0e0; color: #a02828; }
+  .crop dl { font-size: .9rem; } .crop dt { display: inline; font-weight: 700; color: var(--soil); } .crop dd { display: inline; } .crop div.r { margin: 2px 0; }
+  .crop .tip { margin-top: 10px; font-size: .85rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; }
+  .crop .btn { margin-top: 12px; width: 100%; }
+  .empty { text-align: center; color: var(--muted); padding: 30px; grid-column: 1 / -1; }
+
+  /* PROFIT */
+  .res { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  .res div { background: #f3f8ea; border-radius: 14px; padding: 14px; text-align: center; }
+  .res b { display: block; font-size: 1.4rem; font-family: 'Fraunces', serif; } .res small { color: var(--muted); }
+  .res .big { grid-column: 1 / -1; background: var(--green); color: #fff; } .res .big small { color: #d9f0cc; } .res .big.loss { background: #c0392b; }
+  .meter { height: 14px; border-radius: 99px; background: #f6d4d0; overflow: hidden; margin-top: 16px; display: flex; }
+  .meter i { display: block; height: 100%; background: var(--green); transition: width .5s; }
+  .meter-l { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); margin-top: 5px; }
+
+  /* FIELDS */
+  .field { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .field:last-child { border: none; }
+  .field .em { font-size: 2rem; } .field h4 { font-size: 1.05rem; } .field small { color: var(--muted); }
+  .pbar { height: 9px; background: #e8eedd; border-radius: 99px; overflow: hidden; margin-top: 7px; }
+  .pbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--lime), var(--green)); border-radius: 99px; }
+  .days-left { text-align: right; font-weight: 800; color: var(--green-d); font-family: 'Fraunces', serif; line-height: 1.1; } .days-left small { display: block; font-family: 'Nunito'; font-weight: 600; }
+  .x { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--muted); } .x:hover { color: #c0392b; }
+  .log-item { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .log-item:last-child { border: none; } .log-item .em { font-size: 1.4rem; } .log-item div { flex: 1; } .log-item small { color: var(--muted); }
+  .scroll { max-height: 360px; overflow-y: auto; }
+  .note { font-size: .8rem; color: var(--muted); text-align: center; margin-top: 14px; }
+
+  footer { margin-top: 70px; background: var(--green-d); color: #d6ecc8; text-align: center; padding: 34px 5vw; }
+  footer b { font-family: 'Fraunces', serif; color: #fff; font-size: 1.2rem; }
+  @media (max-width: 600px) { .two { grid-template-columns: 1fr; } .field { grid-template-columns: auto 1fr; } .days-left { grid-column: 2; text-align: left; } }
+</style>
+</head>
+<body>
+
+<nav><div class="nav-in">
+  <div class="logo">🌱 AgriSmart</div>
+  <div class="links">
+    <a href="#weather">Weather</a><a href="#advisor">Crop Advisor</a><a href="#profit">Profit</a><a href="#fields">My Fields</a><a href="#diary">Diary</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <div class="sun"></div>
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <h1>Grow smarter.<br>Harvest better.</h1>
+  <p>Weather, crop planning, profit estimates and field tracking — everything a modern farmer needs in one simple dashboard.</p>
+  <div class="hero-btns">
+    <a class="btn" href="#advisor">Find the right crop</a>
+    <a class="btn alt" href="#weather">Check weather</a>
+  </div>
+  <div class="field-rows"></div>
+</header>
+
+<!-- WEATHER -->
+<section class="s" id="weather">
+  <div class="s-head"><h2>🌦 Farm Weather</h2><p>Live forecast and irrigation advice for your location</p></div>
+  <div class="card weather">
+    <div class="w-top">
+      <div class="w-now"><div class="w-ico" id="wIco">⛅</div>
+        <div><div class="w-temp" id="wTemp">--°C</div><div class="w-desc" id="wDesc">Tap the button to load weather</div></div></div>
+      <div class="w-stats">
+        <div><b id="wHum">--%</b><small>Humidity</small></div>
+        <div><b id="wWind">-- km/h</b><small>Wind</small></div>
+        <div><b id="wRain">-- mm</b><small>Rain today</small></div>
+      </div>
+      <button class="btn alt" id="locBtn">📍 Use my location</button>
+    </div>
+    <div class="forecast" id="forecast"></div>
+    <div class="advice" id="advice" hidden></div>
+    <div class="w-msg" id="wMsg"></div>
+  </div>
+</section>
+
+<!-- ADVISOR -->
+<section class="s" id="advisor">
+  <div class="s-head"><h2>🌾 Crop Advisor</h2><p>Pick the season and your soil — we'll suggest suitable crops</p></div>
+  <div class="card">
+    <div class="two">
+      <div><label>Season</label>
+        <div class="chips" id="seasonChips">
+          <button class="chip" data-v="kharif">☔ Kharif (Jun–Sep)</button>
+          <button class="chip" data-v="rabi">❄ Rabi (Oct–Feb)</button>
+          <button class="chip" data-v="zaid">☀ Zaid (Mar–May)</button>
+        </div></div>
+      <div><label for="soil">Soil type</label>
+        <select id="soil"><option value="any">Any soil</option><option value="black">Black (Regur)</option><option value="loamy">Loamy</option><option value="clay">Clayey</option><option value="sandy">Sandy</option></select></div>
+    </div>
+    <div class="two">
+      <div><label for="waterSel">Water availability</label>
+        <select id="waterSel"><option value="any">Any</option><option value="Low">Low (rainfed)</option><option value="Medium">Medium</option><option value="High">High (canal / well)</option></select></div>
+    </div>
+  </div>
+  <div class="crops" id="crops"></div>
+  <p class="note">Yields and prices are rough averages for planning only — check local mandi rates and your agriculture officer's advice.</p>
+</section>
+
+<!-- PROFIT -->
+<section class="s" id="profit">
+  <div class="s-head"><h2>💰 Profit Calculator</h2><p>Estimate your income before you sow</p></div>
+  <div class="grid g2">
+    <div class="card">
+      <label for="pCrop">Crop (auto-fills typical values)</label>
+      <select id="pCrop"></select>
+      <div class="two">
+        <div><label for="pArea">Area (acres)</label><input type="number" id="pArea" value="2" min="0" step="0.1"></div>
+        <div><label for="pYield">Yield (quintal/acre)</label><input type="number" id="pYield" value="10" min="0" step="0.1"></div>
+      </div>
+      <div class="two">
+        <div><label for="pPrice">Price (₹/quintal)</label><input type="number" id="pPrice" value="2000" min="0"></div>
+        <div><label for="pSeed">Seed (₹/acre)</label><input type="number" id="pSeed" value="2500" min="0"></div>
+      </div>
+      <div class="two">
+        <div><label for="pFert">Fertilizer & spray (₹/acre)</label><input type="number" id="pFert" value="5000" min="0"></div>
+        <div><label for="pLab">Labour (₹/acre)</label><input type="number" id="pLab" value="6000" min="0"></div>
+      </div>
+      <label for="pOther">Water, machinery & other (₹/acre)</label>
+      <input type="number" id="pOther" value="3000" min="0">
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Estimated result</h3>
+      <div class="res">
+        <div><b id="rRev">₹0</b><small>Total income</small></div>
+        <div><b id="rCost">₹0</b><small>Total cost</small></div>
+        <div class="big" id="rBig"><b id="rProfit">₹0</b><small id="rProfitL">Net profit</small></div>
+        <div><b id="rAcre">₹0</b><small>Profit per acre</small></div>
+        <div><b id="rRoi">0%</b><small>Return on cost</small></div>
+      </div>
+      <div class="meter"><i id="mCost" style="width:50%"></i></div>
+      <div class="meter-l"><span>Cost share</span><span id="mTxt"></span></div>
+      <div class="meter-l" style="margin-top:12px"><span>Break-even price</span><b id="rBE">₹0 / q</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- FIELDS -->
+<section class="s" id="fields">
+  <div class="s-head"><h2>🚜 My Fields & Harvest Countdown</h2><p>Add a field — we count the days to harvest</p></div>
+  <div class="grid g2">
+    <div class="card">
+      <form id="fieldForm">
+        <label for="fName">Field name</label><input id="fName" placeholder="e.g. North plot" maxlength="30" required>
+        <div class="two">
+          <div><label for="fCrop">Crop</label><select id="fCrop"></select></div>
+          <div><label for="fArea">Area (acres)</label><input type="number" id="fArea" value="1" min="0.1" step="0.1" required></div>
+        </div>
+        <label for="fDate">Sowing date</label><input type="date" id="fDate" required>
+        <button class="btn" style="margin-top:16px;width:100%" type="submit">Add field</button>
+      </form>
+    </div>
+    <div class="card"><div class="scroll" id="fieldList"></div></div>
+  </div>
+</section>
+
+<!-- DIARY -->
+<section class="s" id="diary">
+  <div class="s-head"><h2>📒 Farm Diary</h2><p>Record irrigation, spraying, fertilizer and expenses</p></div>
+  <div class="grid g2">
+    <div class="card">
+      <form id="logForm">
+        <label for="lType">Activity</label>
+        <select id="lType">
+          <option value="💧|Irrigation">💧 Irrigation</option><option value="🧪|Fertilizer">🧪 Fertilizer</option>
+          <option value="🐛|Pest spray">🐛 Pest spray</option><option value="🌱|Sowing">🌱 Sowing</option>
+          <option value="🧺|Harvest">🧺 Harvest</option><option value="💸|Expense">💸 Expense</option><option value="📝|Other">📝 Other</option>
+        </select>
+        <label for="lNote">Details</label><input id="lNote" placeholder="e.g. 2 hrs drip, North plot" maxlength="100" required>
+        <div class="two">
+          <div><label for="lDate">Date</label><input type="date" id="lDate" required></div>
+          <div><label for="lCost">Cost (₹, optional)</label><input type="number" id="lCost" min="0" placeholder="0"></div>
+        </div>
+        <button class="btn" style="margin-top:16px;width:100%" type="submit">Save entry</button>
+      </form>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3>Recent activity</h3><small style="color:var(--muted)" id="logTotal"></small>
+      </div>
+      <div class="scroll" id="logList"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <b>🌱 AgriSmart</b>
+  <p style="margin-top:6px">Built for farmers · Your data stays on your device</p>
+</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+  const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
+
+  /* ---------- crop data (indicative averages) ---------- */
+  const CROPS = [
+    { n: 'Rice (Paddy)', e: '🌾', s: ['kharif'], soil: ['clay', 'loamy'], d: 120, w: 'High', sow: 'Jun–Jul', hv: 'Oct–Nov', y: 20, p: 2200, tip: 'Needs standing water; use SRI method to save water.' },
+    { n: 'Cotton', e: '☁️', s: ['kharif'], soil: ['black', 'loamy'], d: 180, w: 'Medium', sow: 'Jun–Jul', hv: 'Nov–Jan', y: 8, p: 6800, tip: 'Watch for bollworm; scout fields weekly.' },
+    { n: 'Soybean', e: '🫘', s: ['kharif'], soil: ['black', 'loamy'], d: 100, w: 'Medium', sow: 'Jun–Jul', hv: 'Oct', y: 8, p: 4600, tip: 'Fixes nitrogen — a great rotation crop.' },
+    { n: 'Maize', e: '🌽', s: ['kharif', 'rabi'], soil: ['loamy', 'sandy'], d: 100, w: 'Medium', sow: 'Jun–Jul / Oct', hv: 'Sep–Oct', y: 25, p: 2100, tip: 'Avoid waterlogging; fertilize in 2 split doses.' },
+    { n: 'Sugarcane', e: '🎋', s: ['kharif', 'rabi'], soil: ['black', 'loamy', 'clay'], d: 365, w: 'High', sow: 'Oct–Mar', hv: '12 months later', y: 400, p: 340, tip: 'Trash mulching saves water and boosts soil carbon.' },
+    { n: 'Groundnut', e: '🥜', s: ['kharif'], soil: ['sandy', 'loamy'], d: 110, w: 'Low', sow: 'Jun–Jul', hv: 'Oct', y: 8, p: 6000, tip: 'Light, well-drained soil gives the best pods.' },
+    { n: 'Wheat', e: '🌾', s: ['rabi'], soil: ['loamy', 'clay'], d: 120, w: 'Medium', sow: 'Nov–Dec', hv: 'Mar–Apr', y: 18, p: 2300, tip: 'Sow on time — late sowing cuts yield noticeably.' },
+    { n: 'Chickpea (Gram)', e: '🫛', s: ['rabi'], soil: ['black', 'loamy'], d: 105, w: 'Low', sow: 'Oct–Nov', hv: 'Feb–Mar', y: 7, p: 5400, tip: 'Needs very little water; avoid heavy irrigation.' },
+    { n: 'Mustard', e: '🌼', s: ['rabi'], soil: ['loamy', 'sandy'], d: 110, w: 'Low', sow: 'Oct–Nov', hv: 'Feb–Mar', y: 6, p: 5600, tip: 'Cold-tolerant oilseed with low input cost.' },
+    { n: 'Onion', e: '🧅', s: ['rabi'], soil: ['loamy', 'sandy'], d: 130, w: 'Medium', sow: 'Oct–Dec', hv: 'Mar–Apr', y: 100, p: 1500, tip: 'Cure bulbs 3–5 days in shade before storage.' },
+    { n: 'Tomato', e: '🍅', s: ['rabi', 'zaid'], soil: ['loamy', 'sandy'], d: 100, w: 'Medium', sow: 'Oct–Nov / Feb', hv: 'Jan–May', y: 90, p: 1500, tip: 'Stake plants and use drip to reduce blight.' },
+    { n: 'Watermelon', e: '🍉', s: ['zaid'], soil: ['sandy', 'loamy'], d: 90, w: 'Medium', sow: 'Feb–Mar', hv: 'May–Jun', y: 80, p: 1200, tip: 'Sandy riverbed-type soil gives sweet fruit.' },
+    { n: 'Cucumber', e: '🥒', s: ['zaid'], soil: ['loamy', 'sandy'], d: 60, w: 'Medium', sow: 'Feb–Mar', hv: 'Apr–May', y: 60, p: 1500, tip: 'Quick crop — harvest every 2 days for more fruit.' },
+    { n: 'Green Gram (Moong)', e: '🌱', s: ['zaid', 'kharif'], soil: ['loamy', 'sandy'], d: 65, w: 'Low', sow: 'Mar–Apr', hv: 'Jun', y: 4, p: 7500, tip: 'Short duration; improves soil nitrogen.' }
+  ];
+  const sName = { kharif: 'Kharif', rabi: 'Rabi', zaid: 'Zaid' }, sCls = { kharif: 'k', rabi: 'r', zaid: 'z' };
+  const mo = new Date().getMonth() + 1;
+  let season = mo >= 6 && mo <= 9 ? 'kharif' : (mo >= 10 || mo <= 2) ? 'rabi' : 'zaid';
+
+  /* ---------- weather ---------- */
+  const WC = c => c === 0 ? ['☀️', 'Clear sky'] : c <= 2 ? ['🌤', 'Partly cloudy'] : c === 3 ? ['☁️', 'Overcast'] : c <= 48 ? ['🌫', 'Foggy'] :
+    c <= 57 ? ['🌦', 'Drizzle'] : c <= 67 ? ['🌧', 'Rain'] : c <= 77 ? ['❄️', 'Snow'] : c <= 82 ? ['🌧', 'Rain showers'] : c <= 99 ? ['⛈', 'Thunderstorm'] : ['⛅', 'Weather'];
+  const loadWeather = (lat, lon) => {
+    $('wMsg').textContent = 'Loading forecast…';
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=6`;
+    fetch(url).then(r => r.json()).then(j => {
+      const c = j.current, d = j.daily, [ic, ds] = WC(c.weather_code);
+      $('wIco').textContent = ic; $('wDesc').textContent = ds;
+      $('wTemp').textContent = Math.round(c.temperature_2m) + '°C';
+      $('wHum').textContent = c.relative_humidity_2m + '%';
+      $('wWind').textContent = Math.round(c.wind_speed_10m) + ' km/h';
+      $('wRain').textContent = (d.precipitation_sum[0] || 0).toFixed(1) + ' mm';
+      const fc = $('forecast'); fc.innerHTML = '';
+      d.time.slice(1).forEach((t, i) => {
+        const k = i + 1, el = document.createElement('div'); el.className = 'fday';
+        el.innerHTML = `<div>${new Date(t).toLocaleDateString(undefined, { weekday: 'short' })}</div><div class="e">${WC(d.weather_code[k])[0]}</div><b>${Math.round(d.temperature_2m_max[k])}°</b> / ${Math.round(d.temperature_2m_min[k])}°<div style="opacity:.85">💧 ${(d.precipitation_sum[k] || 0).toFixed(1)} mm</div>`;
+        fc.append(el);
+      });
+      const next3 = d.precipitation_sum.slice(0, 3).reduce((a, b) => a + (b || 0), 0);
+      const adv = $('advice'); adv.hidden = false;
+      adv.textContent = next3 > 15 ? '🌧 Heavy rain expected in the next 3 days — skip irrigation, avoid spraying and check field drainage.'
+        : next3 > 5 ? '🌦 Some rain likely — hold off irrigation for now and avoid spraying before showers.'
+        : c.temperature_2m > 35 ? '🔥 Hot and dry — irrigate in early morning or evening to cut evaporation.'
+        : '✅ Dry spell ahead — good time for spraying, harvesting and field work. Irrigate if soil feels dry.';
+      $('wMsg').textContent = 'Forecast by Open-Meteo.';
+    }).catch(() => $('wMsg').textContent = 'Could not load weather. Check your internet connection and try again.');
+  };
+  $('locBtn').onclick = () => {
+    if (!navigator.geolocation) { $('wMsg').textContent = 'Location is not supported in this browser.'; return; }
+    $('wMsg').textContent = 'Getting your location…';
+    navigator.geolocation.getCurrentPosition(
+      p => { store.set('loc', [p.coords.latitude, p.coords.longitude]); loadWeather(p.coords.latitude, p.coords.longitude); },
+      () => $('wMsg').textContent = 'Location blocked. Please allow location access in your browser and try again.',
+      { timeout: 10000 });
+  };
+  const savedLoc = store.get('loc', null); if (savedLoc) loadWeather(savedLoc[0], savedLoc[1]);
+
+  /* ---------- advisor ---------- */
+  const fillSelect = sel => { sel.innerHTML = ''; CROPS.forEach((c, i) => { const o = document.createElement('option'); o.value = i; o.textContent = c.e + ' ' + c.n; sel.append(o); }); };
+  const renderCrops = () => {
+    document.querySelectorAll('#seasonChips .chip').forEach(c => c.classList.toggle('on', c.dataset.v === season));
+    const soil = $('soil').value, water = $('waterSel').value, box = $('crops'); box.innerHTML = '';
+    const list = CROPS.map((c, i) => ({ c, i })).filter(({ c }) => c.s.includes(season) && (soil === 'any' || c.soil.includes(soil)) && (water === 'any' || c.w === water));
+    if (!list.length) { box.innerHTML = '<div class="empty">No matching crops. Try a different soil or water option 🌿</div>'; return; }
+    list.forEach(({ c, i }) => {
+      const el = document.createElement('div'); el.className = 'crop';
+      el.innerHTML = `<div class="em">${c.e}</div><h3>${c.n}</h3>
+        <div class="tags">${c.s.map(s => `<span class="tag ${sCls[s]}">${sName[s]}</span>`).join('')}<span class="tag">💧 ${c.w} water</span></div>
+        <dl><div class="r"><dt>Sowing: </dt><dd>${c.sow}</dd></div><div class="r"><dt>Duration: </dt><dd>${c.d} days</dd></div>
+        <div class="r"><dt>Harvest: </dt><dd>${c.hv}</dd></div><div class="r"><dt>Best soil: </dt><dd>${c.soil.join(', ')}</dd></div>
+        <div class="r"><dt>Typical yield: </dt><dd>${c.y} q/acre</dd></div></dl>
+        <div class="tip">💡 ${c.tip}</div>`;
+      const b = document.createElement('button'); b.className = 'btn small'; b.textContent = '💰 Estimate profit';
+      b.onclick = () => { $('pCrop').value = i; fillProfit(); document.getElementById('profit').scrollIntoView(); };
+      el.append(b); box.append(el);
+    });
+  };
+  $('seasonChips').onclick = e => { const b = e.target.closest('.chip'); if (b) { season = b.dataset.v; renderCrops(); } };
+  $('soil').onchange = $('waterSel').onchange = renderCrops;
+
+  /* ---------- profit ---------- */
+  const COST = { 'Rice (Paddy)': [2500, 7000, 7500, 4000], 'Cotton': [3000, 8000, 9000, 4000], 'Sugarcane': [12000, 12000, 15000, 8000] };
+  const fillProfit = () => {
+    const c = CROPS[$('pCrop').value];
+    $('pYield').value = c.y; $('pPrice').value = c.p;
+    const cost = COST[c.n] || (c.y > 50 ? [6000, 9000, 14000, 6000] : [2500, 5000, 6000, 3000]);
+    $('pSeed').value = cost[0]; $('pFert').value = cost[1]; $('pLab').value = cost[2]; $('pOther').value = cost[3];
+    calc();
+  };
+  const calc = () => {
+    const v = id => Math.max(0, parseFloat($(id).value) || 0);
+    const area = v('pArea'), rev = area * v('pYield') * v('pPrice');
+    const cost = area * (v('pSeed') + v('pFert') + v('pLab') + v('pOther')), profit = rev - cost;
+    $('rRev').textContent = inr(rev); $('rCost').textContent = inr(cost);
+    $('rProfit').textContent = (profit < 0 ? '−' : '') + inr(Math.abs(profit));
+    $('rProfitL').textContent = profit < 0 ? 'Estimated loss' : 'Net profit';
+    $('rBig').classList.toggle('loss', profit < 0);
+    $('rAcre').textContent = (profit < 0 ? '−' : '') + inr(Math.abs(area ? profit / area : 0));
+    $('rRoi').textContent = (cost ? Math.round(profit / cost * 100) : 0) + '%';
+    const share = rev + cost ? Math.min(100, cost / Math.max(rev, 1) * 100) : 0;
+    $('mCost').style.width = Math.min(100, share) + '%'; $('mTxt').textContent = Math.round(share) + '% of income';
+    const q = area * v('pYield'); $('rBE').textContent = q ? inr(cost / q) + ' / q' : '—';
+  };
+  ['pArea', 'pYield', 'pPrice', 'pSeed', 'pFert', 'pLab', 'pOther'].forEach(id => $(id).oninput = calc);
+  $('pCrop').onchange = fillProfit;
+
+  /* ---------- fields ---------- */
+  let fields = store.get('fields', []);
+  const renderFields = () => {
+    const box = $('fieldList'); box.innerHTML = '';
+    if (!fields.length) { box.innerHTML = '<div class="empty">No fields yet. Add your first field 🌾</div>'; return; }
+    fields.forEach(f => {
+      const c = CROPS[f.crop], start = new Date(f.date + 'T00:00:00'), end = new Date(start.getTime() + c.d * 864e5);
+      const total = c.d, passed = Math.floor((Date.now() - start) / 864e5), left = Math.ceil((end - Date.now()) / 864e5);
+      const pct = Math.max(0, Math.min(100, passed / total * 100));
+      const row = document.createElement('div'); row.className = 'field';
+      const stage = passed < 0 ? 'Not sown yet' : pct < 25 ? 'Germination' : pct < 60 ? 'Vegetative growth' : pct < 90 ? 'Flowering / filling' : left > 0 ? 'Almost ready' : 'Ready to harvest';
+      row.innerHTML = `<div class="em">${c.e}</div><div><h4></h4><small>${c.n} · ${f.area} acre · ${stage}</small><div class="pbar"><i style="width:${pct}%"></i></div></div>`;
+      row.querySelector('h4').textContent = f.name;
+      const r = document.createElement('div'); r.style.textAlign = 'right';
+      const dl = document.createElement('div'); dl.className = 'days-left';
+      dl.innerHTML = left > 0 ? `${left}<small>days to harvest</small>` : `✅<small>harvest time</small>`;
+      const x = document.createElement('button'); x.className = 'x'; x.textContent = '✕'; x.title = 'Remove';
+      x.onclick = () => { fields = fields.filter(z => z !== f); store.set('fields', fields); renderFields(); };
+      r.append(dl, x); row.append(r); box.append(row);
+    });
+  };
+  $('fieldForm').onsubmit = e => {
+    e.preventDefault();
+    fields.push({ name: $('fName').value.trim(), crop: +$('fCrop').value, area: +$('fArea').value, date: $('fDate').value });
+    store.set('fields', fields); $('fName').value = ''; renderFields();
+  };
+
+  /* ---------- diary ---------- */
+  let logs = store.get('logs', []);
+  const renderLogs = () => {
+    const box = $('logList'); box.innerHTML = '';
+    if (!logs.length) { box.innerHTML = '<div class="empty">No entries yet. Record your first activity 📒</div>'; }
+    logs.slice().sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(l => {
+      const [ic, name] = l.type.split('|');
+      const row = document.createElement('div'); row.className = 'log-item';
+      row.innerHTML = `<span class="em">${ic}</span><div><b>${name}</b>${l.cost ? ` · <span style="color:#a02828">${inr(l.cost)}</span>` : ''}<br><span class="n"></span><br><small>${new Date(l.date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</small></div>`;
+      row.querySelector('.n').textContent = l.note;
+      const x = document.createElement('button'); x.className = 'x'; x.textContent = '✕';
+      x.onclick = () => { logs = logs.filter(z => z.id !== l.id); store.set('logs', logs); renderLogs(); };
+      row.append(x); box.append(row);
+    });
+    const tot = logs.reduce((a, l) => a + (+l.cost || 0), 0);
+    $('logTotal').textContent = tot ? 'Total spent: ' + inr(tot) : '';
+  };
+  $('logForm').onsubmit = e => {
+    e.preventDefault();
+    logs.push({ id: Date.now(), type: $('lType').value, note: $('lNote').value.trim(), date: $('lDate').value, cost: +$('lCost').value || 0 });
+    store.set('logs', logs); $('lNote').value = ''; $('lCost').value = ''; renderLogs();
+  };
+
+  /* ---------- init ---------- */
+  fillSelect($('pCrop')); fillSelect($('fCrop'));
+  $('fDate').value = iso(new Date()); $('lDate').value = iso(new Date());
+  renderCrops(); fillProfit(); renderFields(); renderLogs();
+})();
+</script>
+</body>
+</html>
